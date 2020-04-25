@@ -43,13 +43,13 @@ namespace com.businesscentral
             return orders;
         }
 
-        public async Task<Employees> GetSaleagentByOrder(SalesOrder order)
+        public async Task<Customers> GetCustomerByOrder(SalesOrder order)
         {
-            Employees employees = null;
+            Customers employees = null;
 
             if (order == null || String.IsNullOrEmpty(order.Salesperson))
                 return null;
-            var query = String.Format("employees?$filter=number eq '{0}'", order.Salesperson);
+            var query = String.Format("customers?$filter=number eq '{0}'", order.Salesperson);
 
             var apiEndPoint = this.ApiEndPoint + query;
 
@@ -58,7 +58,7 @@ namespace com.businesscentral
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", this.AuthInfo);
                 var responseMessage = await httpClient.GetAsync(apiEndPoint);
                 if (responseMessage.IsSuccessStatusCode)
-                    employees = JsonConvert.DeserializeObject<Employees>(await responseMessage.Content.ReadAsStringAsync());
+                    employees = JsonConvert.DeserializeObject<Customers>(await responseMessage.Content.ReadAsStringAsync());
             }
             return employees;
         }

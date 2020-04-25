@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -14,7 +13,7 @@ namespace com.businesscentral
 {
     public static class SalesOrderWebHook
     {
-        [FunctionName("SalesOrderWebHook")]
+        [FunctionName("SalesOrderPayPalWebHook")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]
             HttpRequest req,
@@ -25,8 +24,8 @@ namespace com.businesscentral
                 return new BadRequestObjectResult("Unexpected " + req.Method + " request");
 
             // Validation token for webhook registration
-            //  reply token to accept webhoob subcriprion
-            string validationToken = req.Query["validationToken"];
+            //  reply token to accept webhook subscription
+            var validationToken = req.Query["validationToken"].ToString();
             if (validationToken != null)
             {
                 dynamic data = JsonConvert.SerializeObject(validationToken);
@@ -48,16 +47,16 @@ namespace com.businesscentral
             var config = new ConnectorConfig(configBuilder);
             BusinessCentralConnector centraConnector = new BusinessCentralConnector(config);
             var order = await centraConnector.GetOrderByWebhook(ev);
-            var saleAgents = await centraConnector.GetSaleagentByOrder(order);
-            var saleAgent = (saleAgents != null && saleAgents.Value != null && saleAgents.Value.Count > 0) ? saleAgents.Value[0] : null;
+            var customers = await centraConnector.GetCustomerByOrder(order);
+            var customer = (customers != null && customers.Value != null && customers.Value.Count > 0) ? customers.Value[0] : null;
 
             // Message is composed
             MessageComposer composer = new MessageComposer();
             var messageText = composer.DataBindMessage(order);
 
             // Message sent
-            TwilioMessage twilioMessage = new TwilioMessage();
-            var message = twilioMessage.SendMessage(messageText, saleAgent, config);
+            var twilioMessage = new TwilioConnector();
+            var message = twilioMessage.SendMessage(messageText, customer, config);
 
             return new StatusCodeResult(200);
         }
