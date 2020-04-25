@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace com.businesscentral
 {
@@ -22,34 +23,29 @@ namespace com.businesscentral
 
             this.AuthInfo = Convert.ToBase64String(Encoding.Default.GetBytes(config.authInfo));
         }
-        public async Task<SalesOrder> GetOrderByWebhook(WebHookEvent ev)
+        public async Task<SalesOrder> GetPayPalOrderByWebhook(WebHookEvent ev)
         {
-            SalesOrder orders = null;
-
-            if (ev == null || ev.Value == null || ev.Value.Count == 0)
-                return null;
-            if (!ev.Value[0].Resource.Contains("salesOrders"))
-                return null;
-
-            var apiEndPoint = this.ApiWebHookEndPoint + ev.Value[0].Resource;
+            var apiEndPoint = this.ApiWebHookEndPoint + ev.Resource;
 
             using (var httpClient = new HttpClient())
             {
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", this.AuthInfo);
                 var responseMessage = await httpClient.GetAsync(apiEndPoint);
                 if (responseMessage.IsSuccessStatusCode)
-                    orders = JsonConvert.DeserializeObject<SalesOrder>(await responseMessage.Content.ReadAsStringAsync());
+                {
+                    var order = JsonConvert.DeserializeObject<SalesOrder>(await responseMessage.Content.ReadAsStringAsync());
+                    if (order != null)
+                        return order.PaymentTermsId.Equals("PAYPAL") ? order : null;
+                }
             }
-            return orders;
+            return null;
         }
 
-        public async Task<Customers> GetCustomerByOrder(SalesOrder order)
+        public async Task<Customer> GetCustomerByOrder(SalesOrder order)
         {
-            Customers employees = null;
-
-            if (order == null || String.IsNullOrEmpty(order.Salesperson))
+            if (order == null || String.IsNullOrEmpty(order.CustomerNumber))
                 return null;
-            var query = String.Format("customers?$filter=number eq '{0}'", order.Salesperson);
+            var query = String.Format("customers?$filter=number eq '{0}'", order.CustomerNumber);
 
             var apiEndPoint = this.ApiEndPoint + query;
 
@@ -58,9 +54,13 @@ namespace com.businesscentral
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", this.AuthInfo);
                 var responseMessage = await httpClient.GetAsync(apiEndPoint);
                 if (responseMessage.IsSuccessStatusCode)
-                    employees = JsonConvert.DeserializeObject<Customers>(await responseMessage.Content.ReadAsStringAsync());
+                {
+                    var customers = JsonConvert.DeserializeObject<Customers>(await responseMessage.Content.ReadAsStringAsync());
+                    if (customers != null && customers.Value != null && customers.Value.Count > 0)
+                        return customers.Value[0];
+                }
             }
-            return employees;
+            return null;
         }
     }
 

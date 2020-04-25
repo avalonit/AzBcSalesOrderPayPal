@@ -33,7 +33,7 @@ namespace com.businesscentral
         public string ContactId { get; set; }
 
         [JsonProperty("customerNumber")]
-        public long CustomerNumber { get; set; }
+        public string CustomerNumber { get; set; }
 
         [JsonProperty("customerName")]
         public string CustomerName { get; set; }
