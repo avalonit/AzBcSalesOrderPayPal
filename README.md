@@ -12,4 +12,4 @@ Consider this request: when back-office approves an order in Business Central th
 
 
 The description of the project:
-XXX
+https://businesscentraldotblog.wordpress.com/2020/04/26/trigger-a-paypal-request-when-an-order-is-approved-and-automatically-get-back-the-payment/
