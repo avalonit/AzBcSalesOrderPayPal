@@ -1,8 +1,19 @@
 using System;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace com.businesscentral
 {
+
+    public partial class SalesOrders
+    {
+        [JsonProperty("@odata.context")]
+        public Uri OdataContext { get; set; }
+
+        [JsonProperty("value")]
+        public List<SalesOrder> Value { get; set; }
+    }
+
     public partial class SalesOrder
     {
         [JsonProperty("@odata.context")]
@@ -45,7 +56,7 @@ namespace com.businesscentral
         public Guid BillToCustomerId { get; set; }
 
         [JsonProperty("billToCustomerNumber")]
-        public long BillToCustomerNumber { get; set; }
+        public string BillToCustomerNumber { get; set; }
 
         [JsonProperty("shipToName")]
         public string ShipToName { get; set; }

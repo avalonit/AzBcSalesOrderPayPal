@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
+    <PackageReference Include="Sendgrid" Version="9.14.0" />
     <PackageReference Include="Twilio" Version="5.39.0" />
   </ItemGroup>
   <ItemGroup>
